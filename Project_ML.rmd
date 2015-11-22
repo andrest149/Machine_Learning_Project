@@ -88,7 +88,7 @@ print(percentMissingDF)
 
 #Final cleanup and setting clean_train.
 
-Mclean <- clean_train[-(86:91)]
+MClean <- clean_train[-(86:91)]
 MClean <- MClean[-(71:73)]
 MClean <- MClean[-(60:69)]
 MClean <- MClean[-(48:56)]
