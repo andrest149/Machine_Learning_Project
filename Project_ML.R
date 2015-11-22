@@ -12,7 +12,7 @@ load <- function(pkg){
   sapply(pkg, require, character.only = TRUE)
 } 
 
-packages <- c("data.table", "Hmisc", "caret", "randomForest", "foreach", "doParallel", "rattle")
+packages <- c("data.table", "Hmisc", "caret", "randomForest", "foreach", "doParallel", "rattle","acepack")
 load(packages)
 
 # Loading Training and Evaluation Data
