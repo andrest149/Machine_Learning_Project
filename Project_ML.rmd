@@ -97,7 +97,7 @@ MClean <- MClean[-(5:25)]
 # Cleaning the testing data, except "problem_id"
  
 cTest <- evaluation_data[,-(1:7)]
-newnames[102] <- "problem_id" # to put problem_id 
+Nnames[102] <- "problem_id" # to put problem_id 
 cTest <- cTest[Nnames]
 cTest <- cTest[-(86:91)]
 cTest <- cTest[-(71:73)]
