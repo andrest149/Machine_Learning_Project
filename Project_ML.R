@@ -1,0 +1,117 @@
+# Project Machine Learning week 3
+# Reading Data
+
+setwd("C:/Users/Tinoco/Google Drive/2. Research (Current)/(2015) Courses/(2015) Especialization in Data Science_/8. Machine Learning/Project_Machine_Learning")
+
+# This function was recycled from another code found in internet
+
+load <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(new.pkg))
+    install.packages(new.pkg, dependencies = TRUE)
+  sapply(pkg, require, character.only = TRUE)
+} 
+
+packages <- c("data.table", "Hmisc", "caret", "randomForest", "foreach", "doParallel", "rattle")
+load(packages)
+
+# Loading Training and Evaluation Data
+training_data <- read.csv("pml-training.csv", na.strings=c("#DIV/0!"," ", "", "NA", "NAs", "NULL"))
+evaluation_data <- read.csv("pml-testing.csv", na.strings=c("#DIV/0!"," ", "", "NA", "NAs", "NULL"))
+
+train_names <- names(training_data)
+test_names <- names(evaluation_data)
+cross_names <- intersect(names(training_data), names(evaluation_data))
+print(cross_names)
+
+# Cleaning Data
+# Removing columns from data
+
+clean_train <- training_data[,-(1:7)]
+N_index <- nearZeroVar(clean_train, saveMetrics=FALSE, freqCut=70/30)
+allnames <- names(clean_train)
+
+# Choosing columns different to N_index
+Nnames <- allnames[-N_index]
+clean_train <- clean_train[Nnames]
+
+## function by Michael Szczepaniak 
+## Creates a data frame with three columns: index, ColumnName and
+## FractionMissing.
+## index is the column index in df corresponding to ColumnName
+## ColumnName is as the name implies: the name the column in df
+## FractionMissing is the fraction of values that are missing or NA.
+## The closer this value is to 1, the less data the column contains
+
+getFractionMissing <- function(df = rawActitivity) {
+  colCount <- ncol(df)
+  returnDf <- data.frame(index=1:ncol(df),
+                         columnName=rep("undefined", colCount),
+                         FractionMissing=rep(-1, colCount),
+                         stringsAsFactors=FALSE)
+  for(i in 1:colCount) {
+    colVector <- df[,i]
+    missingCount <- length(which(colVector == "") * 1)
+    missingCount <- missingCount + sum(is.na(colVector) * 1)
+    returnDf$columnName[i] <- as.character(names(df)[i])
+    returnDf$FractionMissing[i] <- missingCount / length(colVector)
+  }
+  
+  return(returnDf)
+}
+
+percentMissingDF <- getFractionMissing(clean_train)
+print(percentMissingDF)
+
+
+#Final cleanup and setting clean_train.
+
+Mclean <- clean_train[-(86:91)]
+MClean <- MClean[-(71:73)]
+MClean <- MClean[-(60:69)]
+MClean <- MClean[-(48:56)]
+MClean <- MClean[-(5:25)]
+
+
+# Cleaning the testing data, except "problem_id"
+ 
+cTest <- evaluation_data[,-(1:7)]
+newnames[102] <- "problem_id" # to put problem_id 
+cTest <- cTest[Nnames]
+cTest <- cTest[-(86:91)]
+cTest <- cTest[-(71:73)]
+cTest <- cTest[-(60:69)]
+cTest <- cTest[-(48:56)]
+
+x=MClean
+y=cTest[-(5:25)]
+
+
+set.seed(67) #(it can be any number)
+rf <- foreach(ntree=rep(10, 5), .combine=randomForest::combine, .packages='randomForest') %dopar% {
+  randomForest(x, y, ntree=ntree) 
+}
+
+predictions1 <- predict(rf, newdata=training)
+confusionMatrix(predictions1,training$classe)
+
+predictions2 <- predict(rf, newdata=testing)
+confusionMatrix(predictions2,testing$classe)
+
+
+#ANSWERS
+#The following code it was not created by me.
+
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+x <- evaluation_data
+x <- x[feature_set[feature_set!='classe']]
+answers <- predict(rf, newdata=x)
+
+pml_write_files(answers)
